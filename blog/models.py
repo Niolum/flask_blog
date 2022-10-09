@@ -1,22 +1,79 @@
 from enum import unique
-from operator import index
+import uuid
+import hashlib
+import datetime
+
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
+
 from blog import db
 
 
 class User(db.Model):
-    __tablename__ = 'users'
+    __tablename__ = 'user'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), unique=True, nullable=True, index=True)
-    password = db.Column(db.String(60), nullable=True)
+    username = db.Column(db.String, unique=True, index=True)
+    password = db.Column(db.String)
+    posts = db.relationship('Post', lazy='select', backref=db.backref('user', lazy='joined'))
+    comments = db.relationship('Comment',lazy='select', backref=db.backref('user', lazy='joined'))
 
     def _init__(self, username, password):
         self.username = username
         self.password = generate_password_hash(password)
 
+    def __repr__(self):
+        return f"User {self.username}"
+
     def verify_password(self, pwd):
         return check_password_hash(self.password, pwd)
 
+    def check_password(hashed_password, user_password):
+        password, salt = hashed_password.split('.')
+        return password == hashlib.sha256(salt.encode() + user_password.encode()).hexdigest()
+
+
+tags = db.Table('tags',
+    db.Column('tag_id', db.Integer, db.ForeignKey('tag.id'), primary_key=True),
+    db.Column('post_id', db.Integer, db.ForeignKey('post.id'), primary_key=True)
+)
+
+
+class Post(db.Model):
+    __tablename__ = 'post'
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Columt(db.String, nullable=False, index=True, unique=True)
+    body = db.Column(db.String, nullable=False)
+    image = db.Column(db.String)
+    author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    comments = db.relationship('Comment', lazy='select', backred=db.backref('post', lazy='joined'))
+    tags = db.relationship('Tag', secondary=tags, lazy='subquery', backref=db.backref('posts', lazy=True))
+
     def __repr__(self):
-        return f"{self.id}:{self.username}"
+        return f"Post {self.title}"
+
+
+class Tag(db.Model):
+    __tablename__= 'tag'
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Coliumn(db.String, nullable=True, index=True, unique=True)
+
+    def __repr__(self):
+        return f"Tag {self.title}"
+
+
+class Comment(db.Model):
+    __tablename__ = 'comment'
+
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.String, nullable=False)
+    created = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+
+    def __repr__(self):
+        return f"Comment {self.id} - {self.owner_id} - {self.post_id}"
