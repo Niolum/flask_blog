@@ -27,6 +27,7 @@ class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = database_url
     SECRET_KEY=secret_key
+    MEDIA_PATH=os.path.join(BASE_DIR, 'media/')
 
 class TestingConfig(Config):
     DEBUG = True
