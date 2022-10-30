@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+  {% for user in users %}
+    <article class="post">
+      <header>
+        <div>
+          <h1>{{ user['username'] }}</h1>
+          <div class="about">by {{ user['username'] }}</div>
+        </div>
+      </header>
+    </article>
+
+  {% endfor %}
+{% endblock %}

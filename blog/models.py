@@ -7,16 +7,17 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_image_alchemy.fields import StdImageField
 from werkzeug.security import check_password_hash, generate_password_hash
+from flask_login import UserMixin
 
 from blog import db, fs_storage
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     __tablename__ = 'user'
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String, unique=True, index=True)
-    password = db.Column(db.String)
+    username = db.Column(db.String, unique=True, index=True, nullable=False)
+    password = db.Column(db.String, nullable=False)
     photo = db.Column(
         StdImageField(
             storage=fs_storage, 
@@ -28,19 +29,18 @@ class User(db.Model):
     posts = db.relationship('Post', lazy='select', backref=db.backref('user', lazy='joined'))
     comments = db.relationship('Comment',lazy='select', backref=db.backref('user', lazy='joined'))
 
-    def _init__(self, username, password):
-        self.username = username
-        self.password = generate_password_hash(password)
+    # def _init__(self, username, password):
+    #     self.username = username
+    #     self.password = generate_password_hash(password)
+
+    # def set_password(self, password):
+    #     self.password_hash = generate_password_hash(password)
+
+    # def check_password(self, password):
+    #     return  check_password_hash(self.password_hash, password)
 
     def __repr__(self):
         return f"User {self.username}"
-
-    def verify_password(self, pwd):
-        return check_password_hash(self.password, pwd)
-
-    def check_password(hashed_password, user_password):
-        password, salt = hashed_password.split('.')
-        return password == hashlib.sha256(salt.encode() + user_password.encode()).hexdigest()
 
 
 tags = db.Table('tags',

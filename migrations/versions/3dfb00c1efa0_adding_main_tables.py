@@ -1,8 +1,8 @@
 """Adding main tables
 
-Revision ID: 5c9ed1e8c1b1
+Revision ID: 3dfb00c1efa0
 Revises: 
-Create Date: 2022-10-22 21:00:12.778539
+Create Date: 2022-10-23 18:11:59.002019
 
 """
 from alembic import op
@@ -11,7 +11,7 @@ import flask_image_alchemy
 
 
 # revision identifiers, used by Alembic.
-revision = '5c9ed1e8c1b1'
+revision = '3dfb00c1efa0'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -27,8 +27,8 @@ def upgrade():
     op.create_index(op.f('ix_tag_title'), 'tag', ['title'], unique=True)
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('username', sa.String(), nullable=True),
-    sa.Column('password', sa.String(), nullable=True),
+    sa.Column('username', sa.String(), nullable=False),
+    sa.Column('password', sa.String(), nullable=False),
     sa.Column('photo', flask_image_alchemy.fields.StdImageField(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
